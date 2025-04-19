@@ -42,11 +42,44 @@ async function run() {
       res.send(result);
     });
     // carts collection
+
+    // view data carts
+    app.get("/carts", async (req, res) => {
+      
+      try {
+        const email=req.query.email
+        const query= {email: email}
+        const result = await cartCollection.find(query).toArray();
+        // Check if result exists and is an array
+        if (!Array.isArray(result)) {
+          console.error("Unexpected result format:", result);
+          return res.status(500).json({
+            success: false,
+            message: "Server error: Unexpected data format",
+          });
+        }
+        // Successful response
+        console.log(`Found ${result.length} cart items`); // For debugging
+        res.status(200).json({
+          success: true,
+          data: result,
+        });
+      } catch (error) {
+        console.log("Error Fetching Cart item", error);
+        res.status(500).json({
+          success: false,
+          message: "Failed to fetch cart items",
+          error: error.message,
+        });
+      }
+    });
+
+    // save data
     app.post("/carts", async (req, res) => {
       try {
         const cartItem = req.body;
         console.log("Received cart item:", cartItem); // For debugging
-        
+
         // Basic validation
         if (!cartItem?.menuId || !cartItem?.email) {
           return res.status(400).json({ error: "Missing required fields" });
@@ -69,7 +102,6 @@ async function run() {
         res.status(500).json({ error: "Internal server error" });
       }
     });
-
 
     // Test MongoDB connection
     await client.db("admin").command({ ping: 1 });
