@@ -27,10 +27,24 @@ async function run() {
     console.log("Connected to MongoDB!");
 
     // Initialize collections
+    const userCollection = client.db("bistroDb").collection("users"); // ✅ Fixed
     const menuCollection = client.db("bistroDb").collection("menu"); // ✅ Fixed
     const reviewsCollection = client.db("bistroDb").collection("reviews"); // ✅ Fixed
     const cartCollection = client.db("bistroDb").collection("carts");
 
+    // users related API
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      // insert email if user dosent exists:
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "user already exists", insertedId: null });
+        // console.log(res);
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
     // API Endpoints
     app.get("/menu", async (req, res) => {
       const result = await menuCollection.find().toArray();
