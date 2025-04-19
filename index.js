@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8qsyw.mongodb.net/?appName=Cluster0`;
 
 const client = new MongoClient(uri, {
@@ -45,10 +45,9 @@ async function run() {
 
     // view data carts
     app.get("/carts", async (req, res) => {
-      
       try {
-        const email=req.query.email
-        const query= {email: email}
+        const email = req.query.email;
+        const query = { email: email };
         const result = await cartCollection.find(query).toArray();
         // Check if result exists and is an array
         if (!Array.isArray(result)) {
@@ -59,7 +58,7 @@ async function run() {
           });
         }
         // Successful response
-        console.log(`Found ${result.length} cart items`); // For debugging
+        // console.log(`Found ${result.length} cart items`); // For debugging
         res.status(200).json({
           success: true,
           data: result,
@@ -101,6 +100,17 @@ async function run() {
         console.error("Error adding to cart:", error);
         res.status(500).json({ error: "Internal server error" });
       }
+    });
+
+    // delete
+    app.delete("/carts/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: new ObjectId(id) };
+      // console.log(query);
+      const result = await cartCollection.deleteOne(query);
+      // console.log(result);
+      res.send(result);
     });
 
     // Test MongoDB connection
